@@ -7,8 +7,3 @@ spring:
     url: jdbc:mysql://localhost:3306/test
     username: root
     password: root
-
-xd:
-  support:
-    web: # xd-support-web
-      enabled: true
