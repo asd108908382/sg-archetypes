@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <contextName>${HOSTNAME}</contextName>
+    <property name="encoding" value="UTF-8"/>
+    <springProperty scope="context" name="logLocalLevel" source="xd.log.level.local" defaultValue="INFO"/>
+    <springProperty scope="context" name="logDevLevel" source="xd.log.level.dev" defaultValue="INFO"/>
+    <springProperty scope="context" name="logTestLevel" source="xd.log.level.test" defaultValue="INFO"/>
+    <springProperty scope="context" name="logPreLevel" source="xd.log.level.pre" defaultValue="INFO"/>
+    <springProperty scope="context" name="logProdLevel" source="xd.log.level.prod" defaultValue="INFO"/>
+    <springProperty scope="context" name="applicationName" source="spring.application.name"/>
+    <springProperty scope="context" name="environment" source="spring.profiles.active"/>
+<!--    <property name="LOG_PATH" value="/opt/logs" />-->
+    <property name="LOG_PATH" value="/opt/logs" />
+    <property name="LOG_FILE" value="${LOG_PATH}/${applicationName}-${environment}.log" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>${encoding}</charset>
+        </encoder>
+    </appender>
+
+    <!-- Appender to log to file -->
+    <appender name="flatfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Appender to log to file in a JSON format -->
+    <appender name="logstash" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.json</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.json.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                        "severity": "%level",
+                        "service": "${applicationName}",
+                        "trace": "%X{traceId:-}",
+                        "span": "%X{spanId:-}",
+                        "parent": "%X{parentId:-}",
+                        "pid": "${HOSTNAME}",
+                        "thread": "%thread",
+                        "class": "%logger{40}",
+                        "rest": "%message",
+                        "topic": "logback"
+                        }
+                    </pattern>
+                </pattern>
+                <stackTrace>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>100</maxDepthPerThrowable>
+                        <rootCauseFirst>true</rootCauseFirst>
+                        <shortenedClassNameLength>30</shortenedClassNameLength>
+                        <exclude>sun\.reflect\..*\.invoke.*</exclude>
+                        <exclude>net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
+                        <rootCauseFirst>true</rootCauseFirst>
+                        <inlineHash>true</inlineHash>
+                    </throwableConverter>
+                </stackTrace>
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender name="async_logstash" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="logstash"/>
+    </appender>
+
+    <springProfile name="local">
+        <root level="${logLocalLevel}">
+            <appender-ref ref="flatfile"/>
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="async_logstash"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="default,xd_dev,dev">
+        <root level="${logDevLevel}">
+            <appender-ref ref="flatfile"/>
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="async_logstash"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="test">
+        <root level="${logTestLevel}">
+            <appender-ref ref="flatfile"/>
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="async_logstash"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="pre">
+        <root level="${logPreLevel}">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="flatfile"/>
+            <appender-ref ref="async_logstash"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="${logProdLevel}">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="flatfile"/>
+            <appender-ref ref="async_logstash"/>
+        </root>
+    </springProfile>
+</configuration>
