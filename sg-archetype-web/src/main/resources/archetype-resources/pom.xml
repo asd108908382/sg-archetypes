@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <xd-bom.version>0.0.1</xd-bom.version>
+        <sg-bom.version>0.0.1</sg-bom.version>
         <cola.components.version>0.0.1</cola.components.version>
     </properties>
 
@@ -82,7 +82,7 @@
             <dependency>
                 <groupId>org.sea</groupId>
                 <artifactId>sg-bom</artifactId>
-                <version>${xd-bom.version}</version>
+                <version>${sg-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
